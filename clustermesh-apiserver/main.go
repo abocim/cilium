@@ -41,7 +41,6 @@ import (
 	"github.com/cilium/cilium/pkg/k8s"
 	ciliumv2 "github.com/cilium/cilium/pkg/k8s/apis/cilium.io/v2"
 	clientset "github.com/cilium/cilium/pkg/k8s/client/clientset/versioned"
-	k8sconfig "github.com/cilium/cilium/pkg/k8s/config"
 	"github.com/cilium/cilium/pkg/k8s/informer"
 	slim_corev1 "github.com/cilium/cilium/pkg/k8s/slim/k8s/api/core/v1"
 	"github.com/cilium/cilium/pkg/k8s/synced"
@@ -102,6 +101,7 @@ var (
 	clusterID       int
 	ciliumK8sClient clientset.Interface
 	cfg             configuration
+	healthPort      int
 
 	shutdownSignal = make(chan struct{})
 
@@ -205,6 +205,12 @@ func runApiserver() error {
 	flags.StringVar(&cfg.clusterName, option.ClusterName, "default", "Cluster name")
 	option.BindEnv(option.ClusterName)
 
+	flags.String(option.K8sKubeConfigPath, "", "Absolute path of the kubernetes kubeconfig file")
+	option.BindEnv(option.K8sKubeConfigPath)
+
+	flags.IntVar(&healthPort, "health-port", 80, "TCP port for ClusterMesh apiserver health API")
+	option.BindEnv("health-port")
+
 	flags.StringVar(&mockFile, "mock-file", "", "Read from mock file")
 
 	flags.Duration(option.KVstoreConnectivityTimeout, defaults.KVstoreConnectivityTimeout, "Time after which an incomplete kvstore operation  is considered failed")
@@ -260,7 +266,7 @@ func startApi() {
 		}
 	})
 
-	srv := &http.Server{}
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", healthPort)}
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
@@ -564,8 +570,13 @@ func runServer(cmd *cobra.Command) {
 	}).Info("Starting clustermesh-apiserver...")
 
 	if mockFile == "" {
-		k8s.Configure("", "", 0.0, 0)
-		if err := k8s.Init(k8sconfig.NewDefaultConfiguration()); err != nil {
+		k8s.Configure(
+			option.Config.K8sAPIServer,
+			option.Config.K8sKubeConfigPath,
+			float32(option.Config.K8sClientQPSLimit),
+			option.Config.K8sClientBurst,
+		)
+		if err := k8s.Init(option.Config); err != nil {
 			log.WithError(err).Fatal("Unable to connect to Kubernetes apiserver")
 		}
 		synced.SyncCRDs(context.TODO(), synced.AllCRDResourceNames(), &synced.Resources{}, &synced.APIGroups{})
