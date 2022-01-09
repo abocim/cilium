@@ -165,7 +165,7 @@ func (m *VMManager) OnUpdate(k store.Key) {
 			return
 		}
 
-		if n.NodeIdentity == 0 {
+		if n.NodeIdentity == 0 && ciliumNodeRegisterStore != nil {
 			// Phase 1: Initial registration with zero ID, return configuration
 			nk := nodeOverrideFromCEW(n, cew)
 
