@@ -236,6 +236,9 @@ const (
 	// EnableHostFirewall enables network policies for the host
 	EnableHostFirewall = "enable-host-firewall"
 
+	// EnableIdentityFromIPIP enables using of identity from internal header of IPinIP protocol
+	EnableIdentityFromIPIP = "enable-identity-from-ipip"
+
 	// EnableHostPort enables HostPort forwarding implemented by Cilium in BPF
 	EnableHostPort = "enable-host-port"
 
@@ -1952,6 +1955,9 @@ type DaemonConfig struct {
 	// EnableHostFirewall enables network policies for the host
 	EnableHostFirewall bool
 
+	// EnableIdentityFromIPIP enables using of identity from internal header of IPinIP protocol
+	EnableIdentityFromIPIP bool
+
 	// EnableLocalRedirectPolicy enables redirect policies to redirect traffic within nodes
 	EnableLocalRedirectPolicy bool
 
@@ -2846,6 +2852,7 @@ func (c *DaemonConfig) Populate(vp *viper.Viper) {
 	c.EnableMKE = vp.GetBool(EnableMKE)
 	c.CgroupPathMKE = vp.GetString(CgroupPathMKE)
 	c.EnableHostFirewall = vp.GetBool(EnableHostFirewall)
+	c.EnableIdentityFromIPIP = vp.GetBool(EnableIdentityFromIPIP)
 	c.EnableLocalRedirectPolicy = vp.GetBool(EnableLocalRedirectPolicy)
 	c.EncryptInterface = vp.GetStringSlice(EncryptInterface)
 	c.EncryptNode = vp.GetBool(EncryptNode)

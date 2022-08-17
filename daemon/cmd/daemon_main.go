@@ -671,6 +671,9 @@ func initializeFlags() {
 	flags.Bool(option.EnableHostFirewall, false, "Enable host network policies")
 	regOpts.BindEnv(option.EnableHostFirewall)
 
+	flags.Bool(option.EnableIdentityFromIPIP, false, "Enable using of identity from internal header of IPinIP protocol (enable-host-firewall is needed)")
+	regOpts.BindEnv(option.EnableIdentityFromIPIP)
+
 	flags.String(option.IPv4NativeRoutingCIDR, "", "Allows to explicitly specify the IPv4 CIDR for native routing. "+
 		"When specified, Cilium assumes networking for this CIDR is preconfigured and hands traffic destined for that range to the Linux network stack without applying any SNAT. "+
 		"Generally speaking, specifying a native routing CIDR implies that Cilium can depend on the underlying networking stack to route packets to their destination. "+
